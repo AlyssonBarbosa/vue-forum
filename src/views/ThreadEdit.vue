@@ -1,5 +1,5 @@
 <template>
-  <div v-if="text" class="col-full push-top">
+  <div v-if="asyncDataStatus.ready" class="col-full push-top">
     <h1>
       Editing <i> {{ thread?.title }} </i>
     </h1>
@@ -20,6 +20,7 @@ import { useRouter } from "vue-router";
 import ThreadEditor from "@/components/ThreadEditor.vue";
 import { usePostsStore } from "@/stores/posts";
 import type Post from "@/interfaces/post";
+import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
 
 const props = defineProps({
   threadId: { type: String, required: true },
@@ -28,19 +29,22 @@ const props = defineProps({
 onBeforeMount(async () => {
   const thread = await threadStore.fetchThread(props.threadId);
 
-  postStore.fetchPost(thread.posts[0]);
+  await postStore.fetchPost(thread.posts[0]);
+
+  asyncDataStatus.fetched();
 });
 
 const thread = computed(() => {
   return threadStore.thread(props.threadId);
 });
 
+const asyncDataStatus = useAsyncDataStatus();
 const postStore = usePostsStore();
 
 const text = computed(() => {
   const post = postStore.post(thread.value?.posts[0]) as Post;
 
-  return post ? post.text : null;
+  return post ? post.text : "";
 });
 
 const threadStore = useThreadStore();

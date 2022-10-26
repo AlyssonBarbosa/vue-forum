@@ -1,7 +1,11 @@
 import type Forum from "@/interfaces/forum";
 import { defineStore } from "pinia";
 import { findById, upsert } from "@/helpers";
-import { fetchAllItems, fetchItem } from "@/helpers/piniaHelper";
+import {
+  fetchAllItems,
+  fetchItem,
+  makeAppendChildToParentMutation,
+} from "@/helpers/piniaHelper";
 
 export type RootState = {
   forums: Forum[];
@@ -32,11 +36,7 @@ export const useForumStore = defineStore({
       upsert(this.forums, forum);
     },
 
-    appendThreadToForum(forumId: string, threadId: string) {
-      const forum = findById(this.forums, forumId) as Forum;
-      if (!forum) return;
-      forum.threads = (forum && forum.threads) || [];
-      forum.threads.push(threadId);
-    },
+    appendThreadToForum: (state: any) =>
+      makeAppendChildToParentMutation(state, "forums", "threads"),
   },
 });

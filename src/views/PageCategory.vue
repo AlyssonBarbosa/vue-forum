@@ -1,5 +1,5 @@
 <template>
-  <CategoryListItem v-if="category" :category="category" />
+  <CategoryListItem v-if="asyncDataStatus.ready" :category="category" />
 </template>
 
 <script setup lang="ts">
@@ -9,6 +9,8 @@ import { useCategoryStore } from "@/stores/category";
 import type Category from "@/interfaces/category";
 import { findById } from "@/helpers";
 import { useForumStore } from "@/stores/forums";
+import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
+const asyncDataStatus = useAsyncDataStatus();
 
 const store = useCategoryStore();
 const forumStore = useForumStore();
@@ -20,7 +22,9 @@ const props = defineProps({
 onBeforeMount(async () => {
   const category = (await store.fetchCategory(props.id)) as Category;
 
-  forumStore.fetchForums(category.forums);
+  await forumStore.fetchForums(category.forums);
+
+  asyncDataStatus.fetched();
 });
 
 const category = computed(() => {

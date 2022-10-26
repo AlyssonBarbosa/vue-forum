@@ -2,7 +2,11 @@ import { defineStore } from "pinia";
 import type User from "@/interfaces/user";
 import { usePostsStore } from "./posts";
 import { useThreadStore } from "./threads";
-import { fetchAllItems, fetchItem } from "@/helpers/piniaHelper";
+import {
+  fetchAllItems,
+  fetchItem,
+  makeAppendChildToParentMutation,
+} from "@/helpers/piniaHelper";
 import { upsert } from "@/helpers";
 
 export type RootState = {
@@ -44,6 +48,18 @@ export const useAuthStore = defineStore("auth", {
     setUser(user: User) {
       upsert(this.users, user);
     },
+
+    appendThreadToUser: (state: any) =>
+      makeAppendChildToParentMutation(state, "users", "threads"),
+    incrementPost(userId: string, value: number = 1) {
+      const user = this.users.find((u) => u.id === userId);
+
+      if (user) {
+        const total = user.postsCount || 0;
+
+        user.postsCount = total + value;
+      }
+    },
   },
 });
 
@@ -52,18 +68,18 @@ function getUser(id: string): User | undefined {
   if (!user) return undefined;
   return {
     ...user,
-    get threads() {
+    get listThreads() {
       return useThreadStore().threads.filter((t) => t.userId === id);
     },
     get posts() {
       return usePostsStore().posts.filter((t) => t.userId === id);
     },
     get postsCount(): number {
-      return this.posts?.length || 0;
+      return user.postsCount || 0;
     },
 
     get threadsCount(): number {
-      return this.threads?.length || 0;
+      return user.threads?.length || 0;
     },
   };
 }

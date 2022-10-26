@@ -15,7 +15,8 @@ export default interface User {
   website?: string;
   location: string;
   posts?: Post[];
-  threads?: Thread[];
+  threads?: string[];
+  listThreads: Thread[];
   postsCount?: number;
   threadsCount?: number;
 }

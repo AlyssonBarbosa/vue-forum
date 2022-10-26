@@ -5,8 +5,12 @@ import { useForumStore } from "./forums";
 import { usePostsStore } from "./posts";
 import type Post from "@/interfaces/post";
 import type User from "@/interfaces/user";
-import { fetchAllItems, fetchItem } from "@/helpers/piniaHelper";
-import { upsert, findById } from "@/helpers";
+import {
+  fetchAllItems,
+  fetchItem,
+  makeAppendChildToParentMutation,
+} from "@/helpers/piniaHelper";
+import { upsert, findById, docToResource } from "@/helpers";
 import {
   arrayUnion,
   collection,
@@ -89,6 +93,7 @@ export const useThreadStore = defineStore({
 
       const threadRef = doc(collection(db, "threads"));
       const forumRef = doc(collection(db, "forums"), forumId);
+      const userRef = doc(collection(db, "users"), thread.userId);
 
       const batch = writeBatch(db);
 
@@ -96,46 +101,68 @@ export const useThreadStore = defineStore({
       batch.update(forumRef, {
         threads: arrayUnion(threadRef.id),
       });
+      batch.update(userRef, {
+        threads: arrayUnion(threadRef.id),
+      });
 
       await batch.commit();
       console.log(threadRef);
 
       const docRef = await getDoc(threadRef);
+
       const newThread = {
         ...docRef.data(),
         id: docRef.id,
       } as Thread;
       this.setThread(newThread);
-      forumStore.appendThreadToForum(forumId, docRef.id);
+      forumStore.appendThreadToForum({ parentId: forumId, childId: docRef.id });
+      authStore.appendThreadToUser({
+        parentId: authStore.authId,
+        childId: threadRef.id,
+      });
       await postStore.savePost(text, docRef.id);
 
       return newThread;
     },
 
-    updateThread(text: string, title: string, threadId: string) {
+    async updateThread(text: string, title: string, threadId: string) {
       const postStore = usePostsStore();
 
-      const thread = findById(this.threads, threadId) as Thread;
-      const post = findById(postStore.posts, thread?.posts[0]) as Post;
+      const thread = this.thread(threadId) as Thread;
+      const postId = thread?.posts[0];
+      const post = postStore.post(postId) as Post;
+
       if (!thread || !post) return;
 
       thread.title = title;
       post.text = text;
+
+      const threadRef = doc(collection(db, "threads"), threadId);
+      const postRef = doc(collection(db, "posts"), postId);
+
+      const batch = writeBatch(db);
+
+      batch.update(threadRef, {
+        title,
+      });
+
+      batch.update(postRef, {
+        text,
+      });
+
+      await batch.commit();
+
+      const newPost = await getDoc(postRef);
+      const newThread = await getDoc(threadRef);
+
+      this.setThread(docToResource(newThread) as Thread);
+      postStore.setPost(docToResource(newPost) as Post);
     },
 
-    appendPostToThread(threadId: string, postId: string) {
-      const thread = findById(this.threads, threadId) as Thread;
-      if (!thread) return;
-      thread.posts = (thread && thread.posts) || [];
-      thread.posts.push(postId);
-    },
+    appendPostToThread: (state: any) =>
+      makeAppendChildToParentMutation(state, "threads", "posts"),
 
-    appendContributorToThread(threadId: string, userId: string) {
-      const thread = findById(this.threads, threadId) as Thread;
-      if (!thread) return;
-      thread.contributors = (thread && thread.contributors) || [];
-      if (thread.contributors.includes(userId)) return;
-      thread.contributors.push(userId);
-    },
+    appendContributorToThread: (state: any) =>
+      makeAppendChildToParentMutation(state, "threads", "contributors"),
   },
 });

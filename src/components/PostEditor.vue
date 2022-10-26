@@ -14,27 +14,34 @@
 
     <div class="btn-group">
       <button class="btn btn-ghost">Cancel</button>
-      <button class="btn btn-blue" type="submit" name="Publish">Publish</button>
+      <button class="btn btn-blue" type="submit" name="Publish">
+        {{ submitButtonText }}
+      </button>
     </div>
   </form>
 </template>
 
 <script setup lang="ts">
 import { usePostsStore } from "@/stores/posts";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps({
   threadId: { type: String, required: true },
+  text: { type: String, default: "", required: false },
 });
 
-const content = ref();
+const content = ref(props.text);
 
-const store = usePostsStore();
+const emit = defineEmits(["save"]);
 
 const handleChange = () => {
-  store.savePost(content.value, props.threadId);
+  emit("save", { text: content.value, threadId: props.threadId });
   content.value = "";
 };
+
+const submitButtonText = computed(() => {
+  return props.text != "" ? "Edit Post" : "Submit Post";
+});
 </script>
 
 <style scoped></style>

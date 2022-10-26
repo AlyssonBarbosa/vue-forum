@@ -1,5 +1,5 @@
 <template>
-  <div v-if="thread" class="col-large push-top">
+  <div v-if="asyncDataStatus.ready && thread" class="col-large push-top">
     <h1>
       {{ thread.title }}
       <RouterLink
@@ -24,7 +24,7 @@
     </p>
 
     <PostList :posts="postsInThread" />
-    <PostEditor :thread-id="thread.id" />
+    <PostEditor :thread-id="thread.id" @save="savePost($event)" />
   </div>
 </template>
 
@@ -37,6 +37,8 @@ import { useThreadStore } from "@/stores/threads";
 import { usePostsStore } from "@/stores/posts";
 import { useAuthStore } from "@/stores/auth";
 import type Post from "@/interfaces/post";
+import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
+import type Thread from "@/interfaces/thread";
 
 const threadStore = useThreadStore();
 const postStore = usePostsStore();
@@ -46,18 +48,22 @@ const props = defineProps({
   id: { required: true, type: String },
 });
 
+const asyncDataStatus = useAsyncDataStatus();
+
 onBeforeMount(async () => {
   const thread = await threadStore.fetchThread(props.id);
 
-  authStore.fetchUser(thread.userId);
+  await authStore.fetchUser(thread.userId);
 
   const posts = (await postStore.fetchPosts(thread.posts)) as Post[];
   const users = posts.map((post) => post.userId);
-  authStore.fetchUsers(users);
+  await authStore.fetchUsers(users);
+
+  asyncDataStatus.fetched();
 });
 
 const thread = computed(() => {
-  return threadStore.thread(props.id);
+  return threadStore.thread(props.id) as Thread;
 });
 
 const posts = computed(() => {
@@ -67,6 +73,9 @@ const posts = computed(() => {
 const postsInThread = computed(() => {
   return posts.value.filter((p) => p.threadId === thread.value?.id);
 });
+
+const savePost = ({ text, threadId }: any) =>
+  postStore.savePost(text, threadId);
 </script>
 
 <style scoped></style>

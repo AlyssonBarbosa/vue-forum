@@ -1,5 +1,5 @@
 <template>
-  <div class="col-full push-top" v-if="forum">
+  <div class="col-full push-top" v-if="asyncDataStatus.ready">
     <div class="forum-header">
       <div class="forum-details">
         <h1>{{ forum?.name }}</h1>
@@ -31,7 +31,9 @@ import { findById } from "@/helpers";
 import type Forum from "@/interfaces/forum";
 import type Thread from "@/interfaces/thread";
 import { useAuthStore } from "@/stores/auth";
+import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
 
+const asyncDataStatus = useAsyncDataStatus();
 const threadStore = useThreadStore();
 const forumStore = useForumStore();
 const authStore = useAuthStore();
@@ -42,7 +44,9 @@ const props = defineProps({
 onBeforeMount(async () => {
   const forum = await forumStore.fetchForum(props.id);
   const threads = (await threadStore.fetchThreads(forum.threads)) as Thread[];
-  authStore.fetchUsers(threads.map((thread) => thread.userId));
+  await authStore.fetchUsers(threads.map((thread) => thread.userId));
+
+  asyncDataStatus.fetched();
 });
 
 const forum = computed(() => {

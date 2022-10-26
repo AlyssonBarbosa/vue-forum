@@ -3,12 +3,14 @@ import { defineStore } from "pinia";
 import { useAuthStore } from "./auth";
 import { useThreadStore } from "./threads";
 import { fetchAllItems, fetchItem } from "@/helpers/piniaHelper";
-import { upsert } from "@/helpers";
+import { docToResource, upsert } from "@/helpers";
 import {
   addDoc,
   arrayUnion,
   collection,
   doc,
+  getDoc,
+  increment,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -57,18 +59,58 @@ export const usePostsStore = defineStore({
 
       const postRef = doc(collection(db, "posts"));
       const threadRef = doc(db, "threads", threadId);
+      const userRef = doc(db, "users", post.userId);
 
       batch.set(postRef, post);
       batch.update(threadRef, {
         posts: arrayUnion(postRef.id),
         contributors: arrayUnion(post.userId),
       });
+      batch.update(userRef, {
+        postsCount: increment(1),
+      });
 
       await batch.commit();
 
-      this.posts.push({ ...post, id: postRef.id });
-      threadsStore.appendPostToThread(threadId, postRef.id);
-      threadsStore.appendContributorToThread(threadId, authStore.authId);
+      const docRef = await getDoc(postRef);
+
+      const newPost = {
+        ...docRef.data(),
+        id: docRef.id,
+      } as Post;
+
+      this.setPost(newPost);
+
+      threadsStore.appendPostToThread({
+        parentId: threadId,
+        childId: postRef.id,
+      });
+      threadsStore.appendContributorToThread({
+        parentId: threadId,
+        childId: authStore.authId,
+      });
+
+      authStore.incrementPost(authStore.authId, 1);
+    },
+
+    async update(text: string, threadId: string, postId: string) {
+      const authStore = useAuthStore();
+      const post = {
+        text,
+        edited: {
+          at: serverTimestamp(),
+          by: authStore.authId,
+          moderated: false,
+        },
+      };
+
+      const postRef = doc(collection(db, "posts"), postId);
+
+      await updateDoc(postRef, post);
+
+      const newPost = await getDoc(postRef);
+
+      this.setPost(docToResource(newPost) as Post);
     },
   },
 });

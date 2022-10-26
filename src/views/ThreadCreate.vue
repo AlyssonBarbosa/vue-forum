@@ -1,5 +1,5 @@
 <template>
-  <div class="col-full push-top">
+  <div class="col-full push-top" v-if="asyncDataStatus.ready">
     <h1>
       Create new thread in <i> {{ forum?.name }} </i>
     </h1>
@@ -16,14 +16,19 @@ import { useRouter } from "vue-router";
 import ThreadEditor from "@/components/ThreadEditor.vue";
 import { findById } from "@/helpers";
 import type Forum from "@/interfaces/forum";
+import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
 
 const props = defineProps({
   forumId: { type: String, required: true },
 });
 
 const forumStore = useForumStore();
+const asyncDataStatus = useAsyncDataStatus();
 
-onBeforeMount(() => forumStore.fetchForum(props.forumId));
+onBeforeMount(async () => {
+  await forumStore.fetchForum(props.forumId);
+  asyncDataStatus.fetched();
+});
 
 const forum = computed(() => {
   return findById(forumStore.forums, props.forumId) as Forum;
