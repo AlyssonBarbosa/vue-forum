@@ -1,0 +1,39 @@
+<template>
+  <div class="flex-grid" v-if="user">
+    <div class="col-3 push-top">
+      <UserProfileCard v-if="!edit" :user="user" />
+      <UserProfileFormEdit v-else :user="user" />
+    </div>
+
+    <div class="col-7 push-top">
+      <div class="profile-header">
+        <span class="text-lead"> {{ user.username }} recent activity </span>
+        <a href="#">See only started threads?</a>
+      </div>
+
+      <hr />
+
+      <PostList :posts="user.posts?.reverse() || []" />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useAuthStore } from "@/stores/auth";
+import { computed } from "vue";
+import PostList from "../components/PostList.vue";
+import UserProfileCard from "../components/UserProfileCard.vue";
+import UserProfileFormEdit from "../components/UserProfileFormEdit.vue";
+
+const authStore = useAuthStore();
+
+const user = computed(() => {
+  return authStore.userAuth;
+});
+
+defineProps({
+  edit: { type: Boolean, default: false },
+});
+</script>
+
+<style scoped></style>
