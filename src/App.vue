@@ -8,13 +8,16 @@
 
 <script setup lang="ts">
 import { onBeforeMount } from "vue";
-import { RouterView } from "vue-router";
+import { RouterView, useRouter } from "vue-router";
 import TheNavbar from "./components/TheNavbar.vue";
 import { useAuthStore } from "./stores/auth";
 import { useLoadingStore } from "./stores/loading";
 const loadingStore = useLoadingStore();
 onBeforeMount(() => {
-  loadingStore.loading = true;
   useAuthStore().fetchAuthUser();
+});
+
+useRouter().beforeEach(() => {
+  loadingStore.loading = true;
 });
 </script>
