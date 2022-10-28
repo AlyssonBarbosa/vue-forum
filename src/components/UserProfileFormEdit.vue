@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import type User from "@/interfaces/user";
-import { useAuthStore } from "@/stores/auth";
+import { useUsersStore } from "@/stores/user";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -87,7 +87,7 @@ const props = defineProps({
   user: { required: true, type: Object as () => User },
 });
 
-const authStore = useAuthStore();
+const authStore = useUsersStore();
 
 /* A utilização do clone é para as alterações
 feitas no objeto reativo, não impactarem na props */

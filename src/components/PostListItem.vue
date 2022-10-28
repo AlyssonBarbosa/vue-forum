@@ -24,7 +24,7 @@
         </p>
       </div>
       <a
-        v-if="useAuthStore().authId === post.userId"
+        v-if="useUsersStore().authId === post.userId"
         @click.prevent="toogleToEdit"
         style="margin-left: auto; padding-left: 10px"
         class="link-unstyled"
@@ -43,12 +43,12 @@
 <script setup lang="ts">
 import type Post from "@/interfaces/post";
 import type User from "@/interfaces/user";
-import { useAuthStore } from "@/stores/auth";
+import { useUsersStore } from "@/stores/user";
 import PostEditor from "@/components/PostEditor.vue";
 import { computed } from "vue";
 import { usePostsStore } from "@/stores/posts";
 
-const store = useAuthStore();
+const store = useUsersStore();
 
 const props = defineProps({
   post: { type: Object as () => Post, required: true },

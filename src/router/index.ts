@@ -1,16 +1,23 @@
+import { useUsersStore } from "@/stores/user";
+
 import {
   createRouter,
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
-
-/* import { useIndexStore } from "@/stores";
-import { findById } from "@/helpers";
-import type Thread from "@/interfaces/thread"; */
-
-//const store = useIndexStore();
+import { isAuth, threadExists } from "./guards";
 
 const routes = [
+  {
+    path: "/login",
+    name: "Login",
+    component: () => import("@/views/PageLogin.vue"),
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: () => import("@/views/PageRegister.vue"),
+  },
   {
     path: "/",
     name: "Home",
@@ -21,37 +28,21 @@ const routes = [
     name: "threadCreate",
     component: () => import("@/views/ThreadCreate.vue"),
     props: true,
+    beforeEnter: [isAuth],
   },
   {
     path: "/thread/:threadId/edit",
     name: "threadEdit",
     component: () => import("@/views/ThreadEdit.vue"),
     props: true,
+    beforeEnter: [isAuth, threadExists],
   },
   {
-    path: "/thread/:id",
+    path: "/thread/:threadId",
     name: "threadShow",
     component: () => import("@/views/ThreadShow.vue"),
     props: true,
-    /* beforeEnter(to, from, next) {
-      const store = useIndexStore();
-
-      const threadExists = findById(
-        store.threads,
-        to.params.id.toString()
-      ) as Thread;
-
-      if (threadExists) {
-        return next();
-      }
-
-      return next({
-        name: "NotFound",
-        params: { pathMatch: to.path.substring(1).split("/") },
-        query: to.query,
-        hash: to.hash,
-      });
-    }, */
+    beforeEnter: [threadExists],
   },
   {
     path: "/forum/:id",
@@ -69,12 +60,14 @@ const routes = [
     path: "/profile",
     name: "Profile",
     component: () => import("@/views/PageProfile.vue"),
+    beforeEnter: [isAuth],
   },
   {
     path: "/profile/edit",
     name: "ProfileEdit",
     component: () => import("@/views/PageProfile.vue"),
     props: { edit: true },
+    beforeEnter: [isAuth],
   },
   {
     path: "/:pathMatch(.*)*",
@@ -92,6 +85,10 @@ const router = createRouter({
       behavior: "smooth",
     };
   },
+});
+
+router.beforeEach(async () => {
+  await useUsersStore().initAuthentication();
 });
 
 export default router;

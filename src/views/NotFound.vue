@@ -6,7 +6,11 @@
 </template>
 
 <script setup lang="ts">
+import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
+import { onBeforeMount } from "vue";
 import { RouterLink } from "vue-router";
+
+onBeforeMount(() => useAsyncDataStatus().fetched());
 </script>
 
 <style scoped></style>

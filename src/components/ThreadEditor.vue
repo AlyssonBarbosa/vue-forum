@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { ref } from "vue";
 
 const props = defineProps({
@@ -48,9 +48,24 @@ const form = ref({
   text: props.text,
 });
 
-const emit = defineEmits(["save", "cancel"]);
+const emit = defineEmits(["save", "cancel", "dirty", "clean"]);
+
+watch(
+  form,
+  (newValue) => {
+    console.log("heloooo");
+    if (newValue.text !== props.text || newValue.title !== props.title) {
+      console.log("olaaaaaa");
+      return emit("dirty");
+    }
+
+    emit("clean");
+  },
+  { deep: true }
+);
 
 function save() {
+  emit("clean");
   emit("save", { ...form.value });
 }
 

@@ -35,14 +35,14 @@ import PostEditor from "@/components/PostEditor.vue";
 import AppDate from "@/components/AppDate.vue";
 import { useThreadStore } from "@/stores/threads";
 import { usePostsStore } from "@/stores/posts";
-import { useAuthStore } from "@/stores/auth";
+import { useUsersStore } from "@/stores/user";
 import type Post from "@/interfaces/post";
 import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
 import type Thread from "@/interfaces/thread";
 
 const threadStore = useThreadStore();
 const postStore = usePostsStore();
-const authStore = useAuthStore();
+const authStore = useUsersStore();
 
 const props = defineProps({
   id: { required: true, type: String },

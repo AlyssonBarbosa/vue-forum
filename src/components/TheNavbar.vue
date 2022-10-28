@@ -14,8 +14,8 @@
     <!-- use .navbar-open to open nav -->
     <nav class="navbar">
       <ul>
-        <li class="navbar-user">
-          <RouterLink :to="{ name: 'Profile' }">
+        <li v-show="authStore.userAuth" class="navbar-user">
+          <a @click.prevent="userDropOpen = !userDropOpen">
             <img
               class="avatar-small"
               :src="authStore.userAuth?.avatar"
@@ -29,19 +29,28 @@
                 alt=""
               />
             </span>
-          </RouterLink>
+          </a>
 
           <!-- dropdown menu -->
-          <!-- add class "active-drop" to show the dropdown -->
-          <div id="user-dropdown">
+          <!-- add class "" to show the dropdown -->
+          <div id="user-dropdown" :class="{ 'active-drop': userDropOpen }">
             <div class="triangle-drop"></div>
             <ul class="dropdown-menu">
               <li class="dropdown-menu-item">
-                <a href="profile.html">View profile</a>
+                <RouterLink :to="{ name: 'Profile' }">
+                  View profile
+                </RouterLink>
               </li>
-              <li class="dropdown-menu-item"><a href="#">Log out</a></li>
+              <a @click.prevent="signOut()"> Sign Out </a>
             </ul>
           </div>
+        </li>
+
+        <li v-if="!authStore.authId" class="navbar-item">
+          <RouterLink :to="{ name: 'Login' }"> Sign In </RouterLink>
+        </li>
+        <li v-if="!authStore.authId" class="navbar-item">
+          <RouterLink :to="{ name: 'Register' }"> Register </RouterLink>
         </li>
       </ul>
 
@@ -67,11 +76,18 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import { useAuthStore } from "@/stores/auth";
+import { useUsersStore } from "@/stores/user";
 
 const links = ref([{ name: "Home", params: {} }]);
 
-const authStore = useAuthStore();
+const authStore = useUsersStore();
+
+const userDropOpen = ref(false);
+
+function signOut() {
+  userDropOpen.value = false;
+  authStore.signOut();
+}
 </script>
 
 <style scoped></style>

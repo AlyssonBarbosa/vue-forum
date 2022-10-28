@@ -1,21 +1,23 @@
 <template>
-  <div class="col-full push-top" v-if="asyncDataStatus.ready">
-    <div class="forum-header">
-      <div class="forum-details">
-        <h1>{{ forum?.name }}</h1>
-        <p class="text-lead">{{ forum?.description }}</p>
+  <div class="col-full">
+    <div class="col-full push-top" v-if="asyncDataStatus.ready && forum">
+      <div class="forum-header">
+        <div class="forum-details">
+          <h1>{{ forum?.name }}</h1>
+          <p class="text-lead">{{ forum?.description }}</p>
+        </div>
+        <RouterLink
+          :to="{ name: 'threadCreate', params: { forumId: forum?.id } }"
+          class="btn-green btn-small"
+        >
+          Start a thread
+        </RouterLink>
       </div>
-      <RouterLink
-        :to="{ name: 'threadCreate', params: { forumId: forum?.id } }"
-        class="btn-green btn-small"
-      >
-        Start a thread
-      </RouterLink>
     </div>
-  </div>
 
-  <div class="col-full push-top">
-    <ThreadList :threads="threads || []" />
+    <div class="col-full push-top">
+      <ThreadList :threads="threads || []" />
+    </div>
   </div>
 </template>
 
@@ -30,13 +32,13 @@ import { useForumStore } from "@/stores/forums";
 import { findById } from "@/helpers";
 import type Forum from "@/interfaces/forum";
 import type Thread from "@/interfaces/thread";
-import { useAuthStore } from "@/stores/auth";
+import { useUsersStore } from "@/stores/user";
 import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
 
 const asyncDataStatus = useAsyncDataStatus();
 const threadStore = useThreadStore();
 const forumStore = useForumStore();
-const authStore = useAuthStore();
+const authStore = useUsersStore();
 const props = defineProps({
   id: { required: true, type: String },
 });

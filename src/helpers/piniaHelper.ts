@@ -25,6 +25,10 @@ const fetchItem = async (
 
   const docSnapThread = await getDoc(docThread);
 
+  if (!docSnapThread.exists()) {
+    return null;
+  }
+
   const item = {
     ...docSnapThread.data(),
     id: docSnapThread.id,

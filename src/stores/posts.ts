@@ -1,6 +1,6 @@
 import type Post from "@/interfaces/post";
 import { defineStore } from "pinia";
-import { useAuthStore } from "./auth";
+import { useUsersStore } from "./user";
 import { useThreadStore } from "./threads";
 import { fetchAllItems, fetchItem } from "@/helpers/piniaHelper";
 import { docToResource, upsert } from "@/helpers";
@@ -46,7 +46,7 @@ export const usePostsStore = defineStore({
       upsert(this.posts, post);
     },
     async savePost(text: string, threadId: string) {
-      const authStore = useAuthStore();
+      const authStore = useUsersStore();
       const threadsStore = useThreadStore();
       const post: Post = {
         text,
@@ -94,7 +94,7 @@ export const usePostsStore = defineStore({
     },
 
     async update(text: string, threadId: string, postId: string) {
-      const authStore = useAuthStore();
+      const authStore = useUsersStore();
       const post = {
         text,
         edited: {

@@ -4,15 +4,20 @@
       Create new thread in <i> {{ forum?.name }} </i>
     </h1>
 
-    <ThreadEditor @save="save" @cancel="cancel" />
+    <ThreadEditor
+      @save="save"
+      @cancel="cancel"
+      @clean="formEditing = false"
+      @dirty="formEditing = true"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useForumStore } from "@/stores/forums";
 import { useThreadStore } from "@/stores/threads";
-import { computed, onBeforeMount } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onBeforeMount, ref } from "vue";
+import { onBeforeRouteLeave, useRouter } from "vue-router";
 import ThreadEditor from "@/components/ThreadEditor.vue";
 import { findById } from "@/helpers";
 import type Forum from "@/interfaces/forum";
@@ -36,6 +41,7 @@ const forum = computed(() => {
 
 const threadStore = useThreadStore();
 const router = useRouter();
+
 async function save({ text, title }: any) {
   const thread = await threadStore.createThread(text, title, props.forumId);
 
@@ -45,6 +51,16 @@ async function save({ text, title }: any) {
 function cancel() {
   router.push({ name: "Forum", params: { id: props.forumId } });
 }
+
+const formEditing = ref(false);
+
+onBeforeRouteLeave(() => {
+  if (formEditing.value) {
+    const confirmed = window.confirm("Do you realy want get out the page?");
+
+    if (!confirmed) return false;
+  }
+});
 </script>
 
 <style scoped></style>

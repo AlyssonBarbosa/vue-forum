@@ -39,3 +39,13 @@ export interface UserAuth {
   threadsCount: number;
   location: string;
 }
+
+export interface userForm {
+  name: string;
+  avatar: string | null;
+  email: string;
+  username: string;
+  usernameLower?: string | null;
+  password?: string;
+  registeredAt?: any;
+}

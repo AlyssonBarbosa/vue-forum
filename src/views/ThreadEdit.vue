@@ -9,14 +9,16 @@
       :text="text"
       @save="save"
       @cancel="cancel"
+      @clean="formEditing = false"
+      @dirty="formEditing = true"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useThreadStore } from "@/stores/threads";
-import { computed, onBeforeMount } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onBeforeMount, ref } from "vue";
+import { onBeforeRouteLeave, useRouter } from "vue-router";
 import ThreadEditor from "@/components/ThreadEditor.vue";
 import { usePostsStore } from "@/stores/posts";
 import type Post from "@/interfaces/post";
@@ -52,13 +54,23 @@ const router = useRouter();
 
 async function save({ text, title }: any) {
   if (!thread.value) return;
-  threadStore.updateThread(text, title, thread.value.id);
+  await threadStore.updateThread(text, title, thread.value.id);
   router.push({ name: "threadShow", params: { id: thread.value.id } });
 }
 
 function cancel() {
   router.push({ name: "threadShow", params: { id: thread.value?.id } });
 }
+
+const formEditing = ref(false);
+
+onBeforeRouteLeave(() => {
+  if (formEditing.value) {
+    const confirmed = window.confirm("Do you realy want get out the page?");
+
+    if (!confirmed) return false;
+  }
+});
 </script>
 
 <style scoped></style>

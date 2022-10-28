@@ -1,10 +1,10 @@
 export const firebaseConfig = {
-  apiKey: "AIzaSyA85czNQS4_yHMr-z8TNLESOXzpqvi1QYA",
-  authDomain: "vue-school-forum-6ddbb.firebaseapp.com",
-  projectId: "vue-school-forum-6ddbb",
-  storageBucket: "vue-school-forum-6ddbb.appspot.com",
-  messagingSenderId: "957038137902",
-  appId: "1:957038137902:web:18ac1bc590b7569e5245bf",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_ID,
 } as {
   apiKey: string;
   authDomain: string;

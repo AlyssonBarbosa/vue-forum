@@ -1,3 +1,4 @@
+import nProgress from "nprogress";
 import { defineStore } from "pinia";
 
 export type RootState = {
@@ -14,6 +15,7 @@ export const useLoadingStore = defineStore({
   actions: {
     changeAlert(value: boolean) {
       this.loading = value;
+      if (this.loading === false) nProgress.done();
     },
   },
 });

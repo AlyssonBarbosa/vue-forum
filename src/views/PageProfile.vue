@@ -19,13 +19,14 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "@/stores/auth";
-import { computed } from "vue";
+import { useAsyncDataStatus } from "@/composables/asyncDataStatus";
+import { useUsersStore } from "@/stores/user";
+import { computed, onBeforeMount } from "vue";
 import PostList from "../components/PostList.vue";
 import UserProfileCard from "../components/UserProfileCard.vue";
 import UserProfileFormEdit from "../components/UserProfileFormEdit.vue";
 
-const authStore = useAuthStore();
+const authStore = useUsersStore();
 
 const user = computed(() => {
   return authStore.userAuth;
@@ -33,6 +34,10 @@ const user = computed(() => {
 
 defineProps({
   edit: { type: Boolean, default: false },
+});
+
+onBeforeMount(() => {
+  useAsyncDataStatus().fetched();
 });
 </script>
 

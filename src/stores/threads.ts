@@ -1,6 +1,6 @@
 import type Thread from "@/interfaces/thread";
 import { defineStore } from "pinia";
-import { useAuthStore } from "./auth";
+import { useUsersStore } from "./user";
 import { useForumStore } from "./forums";
 import { usePostsStore } from "./posts";
 import type Post from "@/interfaces/post";
@@ -34,7 +34,7 @@ export const useThreadStore = defineStore({
 
   getters: {
     thread: (state) => {
-      const authStore = useAuthStore();
+      const authStore = useUsersStore();
 
       return (id: string): Thread | null => {
         const thread = findById(state.threads, id) as Thread;
@@ -78,7 +78,7 @@ export const useThreadStore = defineStore({
       title: string,
       forumId: string
     ): Promise<Thread | undefined> {
-      const authStore = useAuthStore();
+      const authStore = useUsersStore();
       const forumStore = useForumStore();
       const postStore = usePostsStore();
 
@@ -91,9 +91,11 @@ export const useThreadStore = defineStore({
         contributors: [],
       };
 
+      if (!authStore.authId) return;
+
       const threadRef = doc(collection(db, "threads"));
       const forumRef = doc(collection(db, "forums"), forumId);
-      const userRef = doc(collection(db, "users"), thread.userId);
+      const userRef = doc(collection(db, "users"), authStore.authId);
 
       const batch = writeBatch(db);
 
@@ -126,37 +128,41 @@ export const useThreadStore = defineStore({
     },
 
     async updateThread(text: string, title: string, threadId: string) {
-      const postStore = usePostsStore();
+      try {
+        const postStore = usePostsStore();
 
-      const thread = this.thread(threadId) as Thread;
-      const postId = thread?.posts[0];
-      const post = postStore.post(postId) as Post;
+        const thread = this.thread(threadId) as Thread;
+        const postId = thread?.posts[0];
+        const post = postStore.post(postId) as Post;
 
-      if (!thread || !post) return;
+        if (!thread || !post) return;
 
-      thread.title = title;
-      post.text = text;
+        thread.title = title;
+        post.text = text;
 
-      const threadRef = doc(collection(db, "threads"), threadId);
-      const postRef = doc(collection(db, "posts"), postId);
+        const threadRef = doc(collection(db, "threads"), threadId);
+        const postRef = doc(collection(db, "posts"), postId);
 
-      const batch = writeBatch(db);
+        const batch = writeBatch(db);
 
-      batch.update(threadRef, {
-        title,
-      });
+        batch.update(threadRef, {
+          title,
+        });
 
-      batch.update(postRef, {
-        text,
-      });
+        batch.update(postRef, {
+          text,
+        });
 
-      await batch.commit();
+        await batch.commit();
 
-      const newPost = await getDoc(postRef);
-      const newThread = await getDoc(threadRef);
+        const newPost = await getDoc(postRef);
+        const newThread = await getDoc(threadRef);
 
-      this.setThread(docToResource(newThread) as Thread);
-      postStore.setPost(docToResource(newPost) as Post);
+        this.fetchThread(threadId);
+        postStore.fetchPost(postId);
+      } catch (error) {
+        console.log(error);
+      }
     },
 
     appendPostToThread: (state: any) =>
