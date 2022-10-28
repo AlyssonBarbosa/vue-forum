@@ -45,13 +45,13 @@ const postStore = usePostsStore();
 const authStore = useUsersStore();
 
 const props = defineProps({
-  id: { required: true, type: String },
+  threadId: { required: true, type: String },
 });
 
 const asyncDataStatus = useAsyncDataStatus();
 
 onBeforeMount(async () => {
-  const thread = await threadStore.fetchThread(props.id);
+  const thread = await threadStore.fetchThread(props.threadId);
 
   await authStore.fetchUser(thread.userId);
 
@@ -63,7 +63,7 @@ onBeforeMount(async () => {
 });
 
 const thread = computed(() => {
-  return threadStore.thread(props.id) as Thread;
+  return threadStore.thread(props.threadId) as Thread;
 });
 
 const posts = computed(() => {
